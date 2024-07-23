@@ -14,36 +14,36 @@ var leitor = readline.createInterface({
 
 var email = false;
 
+let indice = 0;
+let filename = '';
+
+const chamadas = [];
+let turma = {};
+turma.chamadas = [];
+
+let arquivos = [];
+
+let nomeAnterior = '';
+let ultimo = 0;
+
+let i = 0;
+let linha = 0;
+let resumo = false;
+
 const paths = [
   {
-    path: "/ccna",
-    file: "CCNA2_07-2022",
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P1-24_Dev_Salesforce/Área dos Instrutores - Monitores/LISTAS DE PRESENÇA",
+    file: "SF-DEV_01-24_",
   },
   {
-    path: "/Users/ronan/OneDrive - Centro Paula Souza/Cisco/12-2022/LISTAS_PRESENÇA",
-    file: "CCNA1_12-2022",
-  },
-  {
-    path: "/Users/ronan/OneDrive - Centro Paula Souza/Google/8-2022/Material de Aula/CHAMADAS",
-    file: "GCCF_08-2022",
-  },
-  {
-    path: "/Users/ronan/OneDrive - Centro Paula Souza/Microsoft/10-2022/Lista de Presença",
-    file: "MICROSOFT_10-2022",
-  },
-  {
-    path: "/Users/ronan/OneDrive - Centro Paula Souza/Salesforce/P11-2022/LISTA DE PRESENÇA",
-    file: "SALESFORCE_11-2022",
-  },
-  {
-    path: "/Users/ronan/OneDrive - Centro Paula Souza/SIXSIGMA/06-2022/CHAMADAS",
-    file: "SIXSIGMA_06-2022",
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P2-24_Dev_Salesforce/Área dos Instrutores e Monitores/LISTAS DE PRESENÇA",
+    file: "SF-DEV_02-24_",
   },
 ];
 
 async function buscarArquivos() {
   leitor.question(
-    "Qual planilha deseja?\n 0 - CCNA 2\n 1 - CCNA 1\n 2 - GCCF\n 3 - Microsoft\n 4 - Salesforce\n 5 - Six Sigma\n",
+    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n",
     async function (answer) {
       indice = answer;
       console.log("\nVocê escolheu: " + indice);
@@ -249,3 +249,5 @@ function exportacao(planilha) {
   fs.writeFile(`${filename}-${date}.xlsx`, buffer);
   console.log(` -> Arquivo gravado com sucesso!`);
 }
+
+buscarArquivos();
