@@ -128,3 +128,4 @@ dist
 
 # Exports
 .xlsx
+*.xlsx
