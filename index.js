@@ -6,6 +6,7 @@ const { sep } = require("path"); // Separador de caminho de arquivo
 const xlsx = require("node-xlsx"); // Módulo para manipular arquivos Excel
 const readline = require("readline"); // Módulo para ler entrada do usuário
 const moment = require("moment");
+const momenttz = require("moment-timezone");
 
 // Cria uma interface de leitura do terminal
 var leitor = readline.createInterface({
@@ -30,22 +31,36 @@ let i = 0; // Índice de controle de iteração
 let linha = 0; // Contador de linha
 let resumo = false; // Flag para verificar se é um resumo
 
+let todos = [];
+
 // Array com caminhos dos diretórios e nomes dos arquivos base
 const paths = [
   {
     path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P1-24_Dev_Salesforce/Área dos Instrutores - Monitores/LISTAS DE PRESENÇA",
-    file: "SF-DEV_01-24_",
+    file: "SF-DEV_P01-24_",
   },
   {
     path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P2-24_Dev_Salesforce/Área dos Instrutores e Monitores/LISTAS DE PRESENÇA",
-    file: "SF-DEV_02-24_",
+    file: "SF-DEV_P02-24_",
+  },
+  {
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P3-24_GCCF/Área dos Instrutores - Monitores/LISTA DE PRESENÇA",
+    file: "GCCF_P03-24_",
+  },
+  {
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P4-24_GenAI/Área dos Instrutores - Monitores/LISTA DE PRESENÇA",
+    file: "GenAI_P04-24_",
+  },
+  {
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P5-24_GenAI/Area dos Instrutores - Monitores/LISTA DE PRESENÇA",
+    file: "GenAI_P05-24_",
   },
 ];
 
 // Função para perguntar ao usuário qual planilha deseja processar
 async function buscarArquivos() {
   leitor.question(
-    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n",
+    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n 2 - 03_GCCF\n 3 - 04_GenAI\n 4 - 05_GenAI\n\nDigite: ",
     async function (answer) {
       indice = answer; // Captura a resposta do usuário
       console.log("\nVocê escolheu: " + indice);
@@ -115,47 +130,62 @@ async function processar() {
       let type = 0;
       linha = 0;
 
+      let ateParte2 = true;
+
       // Itera sobre os registros do arquivo CSV
       records.map((item) => {
         const valor = item[0].split("\t");
 
-        linha++;
+        if (valor[0].startsWith("3. ")) {
+          ateParte2 = false;
+        }
 
-        // Extrai números do email e armazena na variável 'numero'
-        // Regex para capturar os números entre o '.' e o '@'
-        const regex = /\.(\d+)(?=@)/;
-        const email = item[6] ? item[6] : "";
-        const match = email.toString().match(regex);
+        if (ateParte2) {
+          linha++;
 
-        // Verifica se houve correspondência e extrai os números
-        const numero = match ? match[1] : "EQUIPE";
-        // console.log("Numero: ", numero);
+          if (nomeTurma == "GenAI-38 I Sáb 8h às 17h P5-2") {
+            //console.log(valor, linha);
+          }
 
-        if (valor[0].startsWith("Nom") || valor[0].startsWith("Nam")) {
-          alunos = true;
-          //  console.log("Liberou");
-        } else if (!email) {
-          alunos = false;
-          //  console.log("Falso");
-        } else if (alunos) {
-          // console.log(email);
-          valor[0] = valor[0].toString().trim();
+          // Extrai números do email e armazena na variável 'numero'
+          // Regex para capturar os números entre o '.' e o '@'
+          const regex = /\.(\d+)(?=@)/;
+          const emailRegex = /^[\w.-]+@fatcursos\.org\.br$/;
+          const email = item[6] ? item[6] : "";
+          const match = email.toString().match(regex);
+          const matchFAT = emailRegex.test(email.toString());
 
-          valor[0] = `${valor[0]};${numero};${email}`;
+          // Verifica se houve correspondência e extrai os números
+          const numero = match ? match[1] : matchFAT ? "EQUIPE" : "EXTERNO";
 
-          if (!valor[0]) {
+          if (valor[0].startsWith("Nom") || valor[0].startsWith("Nam")) {
+            alunos = true;
+            //  console.log("Liberou");
+          } else if (!email && valor[0].toString().trim().length == 0) {
+            //console.log("XX --> ", valor[0], linha);
             alunos = false;
-          }
+            //console.log(valor[0], nomeTurma);
+          } else if (alunos && valor[0].toString().trim().length != 0) {
+            // console.log(email);
 
-          if (valor[0] && !participantes.includes(valor[0])) {
-            participantes.push(valor[0]);
-          }
+            valor[0] = valor[0].toString().trim();
 
-          if (dia) {
-            dia = false;
-            data.dia = (type == 4 ? (resumo ? item[1] : item[2]) : item[1])
-              .split(" ")[0]
-              .split(",")[0];
+            valor[0] = `${valor[0]};${numero};${email}`;
+
+            if (!valor[0]) {
+              //alunos = false;
+            }
+
+            if (valor[0] && !participantes.includes(valor[0])) {
+              participantes.push(valor[0]);
+            }
+
+            if (dia) {
+              dia = false;
+              data.dia = (type == 4 ? (resumo ? item[1] : item[2]) : item[1])
+                .split(" ")[0]
+                .split(",")[0];
+            }
           }
         }
       });
@@ -187,6 +217,75 @@ function converterData(data) {
   return dataMoment.format("DD/MM/YY");
 }
 
+function obterDataFormatada() {
+  // Defina o fuso horário para GMT-3
+  const timezone = "America/Sao_Paulo"; // Exemplo de fuso horário para GMT-3
+
+  // Obter a data e hora atual no fuso horário especificado
+  const agora = momenttz.tz(timezone);
+
+  // Formatar a data e hora no formato YYYY-MM-DD_HH:MM
+  return agora.format("YYYY-MM-DD_HH-mm");
+}
+
+function calcularPorcentagemPresenca(dados) {
+  // Extrair cabeçalho e número total de datas
+  const cabecalho = dados[0].split(";");
+  console.log("Processando: ", cabecalho[0]);
+  const totalDatas = cabecalho.length - 4; // Exclui os primeiros 3 elementos não relacionados às datas
+
+  // Processar cada linha de dados dos alunos
+  const resultado = dados.slice(1).map((linha, index) => {
+    const partes = linha.split(";");
+    const nome = partes[0];
+    const dadosRestantes = partes.slice(1);
+
+    // Contar número de presenças
+    const totalPresencas = dadosRestantes.filter((item) => item === "X").length;
+
+    if (index == 0) {
+      console.log(nome, "Presenças:", totalPresencas, "Datas:", totalDatas);
+    }
+
+    // Calcular a porcentagem de presença
+    const porcentagemPresenca = (totalPresencas / totalDatas)
+      .toFixed(2)
+      .replace(".", ",");
+    todos.push([partes[0], partes[1], partes[2], porcentagemPresenca]);
+    // Adicionar a porcentagem ao final da linha
+    return partes.concat(porcentagemPresenca).join(";");
+  });
+
+  // Adicionar a nova linha com as porcentagens ao array de dados
+  resultado.unshift(dados[0] + "FREQ"); // Recoloca o cabeçalho original
+
+  return resultado;
+}
+
+// Função para ordenar as datas e manter a coluna de Frequência no final
+function reordenarColuna(data) {
+  const header = data[0];
+  const dateColumns = header.slice(3, -1);
+  const freqIndex = header.length - 1;
+
+  const sortedIndices = dateColumns
+    .map((date, index) => ({
+      date: moment(date, "DD/MM/YY"),
+      index: index + 3,
+    }))
+    .sort((a, b) => a.date - b.date)
+    .map(({ index }) => index);
+
+  const reorderRow = (row) => {
+    const fixedColumns = row.slice(0, 3); // RM, EMAIL, etc.
+    const frequencyColumn = row[freqIndex]; // Frequência
+    const sortedDataColumns = sortedIndices.map((index) => row[index]);
+    return [...fixedColumns, ...sortedDataColumns, frequencyColumn];
+  };
+
+  return data.map(reorderRow);
+}
+
 // Função para gravar o conteúdo no arquivo
 async function gravarArquivoTxt(dados) {
   try {
@@ -208,7 +307,7 @@ async function montarExcel() {
   let planilha = [];
   let turmaTemp = {};
   let nomes = [];
-  await gravarArquivoTxt(chamadas);
+
   chamadas.forEach((turma) => {
     const primeiraLinha = `${turma.nome};RM;EMAIL;`;
     nomes = [primeiraLinha];
@@ -241,25 +340,27 @@ async function montarExcel() {
 }
 
 // Função para exportar a planilha para um arquivo Excel
-function exportacao(planilha) {
+async function exportacao(planilha) {
   let exportacao = [];
 
   planilha.forEach((item) => {
     let temp = {};
     temp.name = item.name;
+    item.data = calcularPorcentagemPresenca(item.data);
     let data = [];
     item.data.forEach((aluno) => {
       data.push(aluno.split(";"));
     });
-    temp.data = data;
+    temp.data = reordenarColuna(data);
     exportacao.push(temp);
   });
-
+  todos.unshift(["NOME", "RM", "EMAIL", "FREQ"]);
+  exportacao.push({ name: "RESUMO", data: todos });
+  await gravarArquivoTxt(exportacao);
   console.log(` -> Iniciando a Gravação do arquivo:`);
   var buffer = xlsx.build(exportacao); // Gera o buffer do arquivo Excel
-  let date = new Date().toISOString().split("T")[0];
 
-  fs.writeFile(`${filename}-${date}.xlsx`, buffer); // Grava o arquivo no sistema
+  fs.writeFile(`output/${filename}-${obterDataFormatada()}.xlsx`, buffer); // Grava o arquivo no sistema
   console.log(` -> Arquivo gravado com sucesso!`);
 }
 
