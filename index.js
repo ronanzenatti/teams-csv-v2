@@ -55,12 +55,20 @@ const paths = [
     path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P5-24_GenAI/Area dos Instrutores - Monitores/LISTA DE PRESENÇA",
     file: "GenAI_P05-24_",
   },
+  {
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P6_AZ_Microsoft/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
+    file: "AZ900_P06-24_",
+  },
+  {
+    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P7-24_GenAI/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
+    file: "GenAI_P07-24_",
+  },
 ];
 
 // Função para perguntar ao usuário qual planilha deseja processar
 async function buscarArquivos() {
   leitor.question(
-    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n 2 - 03_GCCF\n 3 - 04_GenAI\n 4 - 05_GenAI\n\nDigite: ",
+    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n 2 - 03_GCCF\n 3 - 04_GenAI\n 5 - 06_AZ900\n 6 - 07_GenAI\n\n\nDigite: ",
     async function (answer) {
       indice = answer; // Captura a resposta do usuário
       console.log("\nVocê escolheu: " + indice);
