@@ -60,7 +60,7 @@ const paths = [
     file: "AZ900_P06-24_",
   },
   {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P7-24_GenAI/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
+    path: "/Users/PROFESSOR/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P7-24_GenAI/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
     file: "GenAI_P07-24_",
   },
 ];
