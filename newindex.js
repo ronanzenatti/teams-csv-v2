@@ -33,33 +33,17 @@ let arquivos = [];             // Lista de arquivos encontrados
 // Array com as pastas e nomes base para os arquivos de cada planilha
 const paths = [
   {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P1-24_Dev_Salesforce/Área dos Instrutores - Monitores/LISTAS DE PRESENÇA",
-    file: "SF-DEV_P01-24_",
+    path: "/Users/ronan/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/2025-02/01_BI_SQL_Python/LISTAS_PRESENCA",
+    file: "QualificaSP_Oferta1_",
   },
-  {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P2-24_Dev_Salesforce/Área dos Instrutores e Monitores/LISTAS DE PRESENÇA",
-    file: "SF-DEV_P02-24_",
+    {
+    path: "/Users/ronan/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/2025-02/02_Cloud_Chat_Iot_CSeg/LISTA_PRESENÇA",
+    file: "QualificaSP_Oferta2_",
   },
-  {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P3-24_GCCF/Área dos Instrutores - Monitores/LISTA DE PRESENÇA",
-    file: "GCCF_P03-24_",
-  },
-  {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P4-24_GenAI/Área dos Instrutores - Monitores/LISTA DE PRESENÇA",
-    file: "GenAI_P04-24_",
-  },
-  {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P5-24_GenAI/Area dos Instrutores - Monitores/LISTA DE PRESENÇA",
-    file: "GenAI_P05-24_",
-  },
-  {
-    path: "/Users/Professor/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P6_AZ_Microsoft/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
-    file: "AZ900_P06-24_",
-  },
-  {
-    path: "/Users/PROFESSOR/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/P7-24_GenAI/AREA dos INSTRUTORES e MONITORES/LISTAS DE PRESENÇA",
-    file: "GenAI_P07-24_",
-  },
+    {
+    path: "/Users/ronan/OneDrive - FAT - Fundação de Apoio a Tecnologia/_Qualifica SP/2025-02/03_Chat_Cloud_Sergurança/LISTA_PRESENÇA",
+    file: "QualificaSP_Oferta3_",
+  }
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -134,9 +118,9 @@ async function processar() {
 
   // Extração robusta do nome do arquivo e da turma usando "sep"
   const pathParts = arquivos[i].split(sep);
-  const nomeArquivo = pathParts.pop();         // Última parte é o nome do arquivo
-  let nomeTurma = pathParts.pop();               // Penúltima parte é o nome da turma
-  nomeTurma = nomeTurma.substr(0, 29);             // Limita o nome da turma a 29 caracteres
+  const nomeArquivo = pathParts.pop();
+  let nomeTurma = pathParts.pop();
+  nomeTurma = nomeTurma.substr(0, 29);
 
   // Se a turma atual for diferente da anterior, salva os dados acumulados
   if (nomeAnterior && nomeAnterior !== nomeTurma) {
@@ -161,58 +145,143 @@ async function processar() {
       }
 
       // Variáveis de controle para o processamento do arquivo
-      let alunosLiberados = false;       // Indica se os registros de alunos já foram identificados
-      let dataRegistrada = false;        // Controla se a data já foi registrada para o dia atual
-      const data = {};                   // Objeto para armazenar a data e os participantes do dia
-      const participantes = [];          // Armazena os participantes deste dia
-      const rmsAdicionados = [];         // Controla quais RMs já foram adicionados
+      let alunosLiberados = false;
+      let dataRegistrada = false;
+      const data = {};
+      const participantes = [];
+      const rmsAdicionados = [];
 
+      // Debug: vamos ver a estrutura do CSV
+      console.log(`\n=== Processando arquivo: ${nomeArquivo} ===`);
+      
       // Itera sobre cada registro do CSV
-      records.forEach((item) => {
-        // Divide o conteúdo da primeira coluna (pode conter tabulações)
-        const colunas = item[0].split("\t");
-
-        // Se a linha iniciar com "3. ", ignora os registros posteriores
-        if (colunas[0].startsWith("3. ")) return;
-
-        // Habilita o processamento de alunos quando encontrar cabeçalho ("Nom" ou "Nam")
-        if (colunas[0].startsWith("Nom") || colunas[0].startsWith("Nam")) {
-          alunosLiberados = true;
-          return;
+      records.forEach((item, index) => {
+        // O item é um array onde cada posição é uma coluna
+        // Vamos verificar todas as colunas, não apenas item[0]
+        
+        // Debug para as primeiras linhas
+        if (index < 5) {
+          console.log(`Linha ${index}:`, item.slice(0, 10));
         }
 
-        // Se a linha estiver vazia (sem email) desabilita o processamento
-        if (!item[6] && colunas[0].trim().length === 0) {
+        // Verifica se é uma linha com dados válidos
+        const primeiraColuna = item[0] ? item[0].toString().trim() : "";
+        
+        // Se a linha iniciar com "3. ", ignora os registros posteriores
+        if (primeiraColuna.startsWith("3. ")) {
           alunosLiberados = false;
           return;
         }
 
-        // Se os registros de alunos estão liberados e a linha não estiver vazia
-        if (alunosLiberados && colunas[0].trim().length !== 0) {
-          const nome = colunas[0].trim();
-          const email = item[6] || "";
-          // Expressão regular para extrair o RM do email
-          const regex = /\.(\d+)(?=@)/;
-          const emailRegex = /^[\w.-]+@fatcursos\.org\.br$/;
-          const match = email.match(regex);
-          const rm = match ? match[1] : (emailRegex.test(email) ? "EQUIPE" : "EXTERNO");
+        // Habilita o processamento quando encontrar cabeçalho
+        if (primeiraColuna.toLowerCase().includes("nom") || 
+            primeiraColuna.toLowerCase().includes("nam") ||
+            primeiraColuna.toLowerCase().includes("name")) {
+          alunosLiberados = true;
+          console.log("Cabeçalho encontrado, iniciando processamento de alunos");
+          return;
+        }
+
+        // Se os registros de alunos estão liberados
+        if (alunosLiberados) {
+          // Tenta encontrar o nome, email e extrair o RM
+          let nome = "";
+          let email = "";
+          let rm = "";
+
+          // O nome geralmente está na primeira coluna não vazia
+          nome = primeiraColuna;
+          //console.log(nome);
+
+          // Procura o email em todas as colunas (geralmente nas últimas)
+          for (let j = 1; j < item.length; j++) {
+            const valor = item[j] ? item[j].toString().trim() : "";
+            // Verifica se é um email
+            if (valor.includes("@")) {
+              email = valor;
+              //console.log(email);
+              break;
+            }
+          }
+
+          // Se não encontrou nome ou email válidos, pula esta linha
+          if (!nome || nome.length === 0) {
+            console.log("------------------------------------------------------------------------")
+            // Verifica se é uma linha vazia que indica fim dos dados
+            const linhaVazia = item.every(col => !col || col.toString().trim() === "");
+            if (linhaVazia) {
+              alunosLiberados = false;
+            }
+            return;
+          }
+
+          // Extrai o RM do email
+          const regex = /(\d+)(?=@)/;
+          const emailRegex = /^[\w.-]+@fatcursos\.org\.br$/i;
+          
+          if (email) {
+            const match = email.match(regex);
+            if (match) {
+              rm = match[1];
+            } else if (emailRegex.test(email)) {
+              rm = "EQUIPE";
+            } else {
+              rm = "EXTERNO";
+            }
+          } else {
+            // Se não tem email, marca como SEM_EMAIL e usa o nome como identificador
+            rm = `SEM_EMAIL_${nome.substring(0, 10).replace(/\s/g, '_')}`;
+          }
+
+          // Debug
+          if (rm !== "EQUIPE") {
+            console.log(`Aluno encontrado: ${nome} | RM: ${rm} | Email: ${email}`);
+          }
 
           // Monta o registro completo: NOME;RM;EMAIL
           const dadoParticipante = `${nome};${rm};${email}`;
 
           // Inclui o registro somente se este RM ainda não foi adicionado
-          if (!rmsAdicionados.includes(rm)) {
+          if (!rmsAdicionados.includes(rm) && nome != 'audience') {
             participantes.push(dadoParticipante);
             rmsAdicionados.push(rm);
           }
 
-          // Registra a data (apenas na primeira ocorrência)
+          // Registra a data (busca em todas as colunas)
           if (!dataRegistrada) {
-            data.dia = item[1].split(" ")[0].split(",")[0];
-            dataRegistrada = true;
+            for (let j = 0; j < item.length; j++) {
+              const valor = item[j] ? item[j].toString() : "";
+              // Procura por padrões de data
+              if (valor.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/) || 
+                  valor.match(/\d{1,2}\s+\w+\s+\d{2,4}/)) {
+                data.dia = valor.split(" ")[0].split(",")[0];
+                dataRegistrada = true;
+                console.log(`Data encontrada: ${data.dia}`);
+                break;
+              }
+            }
           }
         }
       });
+
+      // Mostra resumo do processamento
+      console.log(`Total de participantes processados: ${participantes.length}`);
+      console.log(`- EQUIPE: ${participantes.filter(p => p.includes("EQUIPE")).length}`);
+      console.log(`- ALUNOS: ${participantes.filter(p => p.match(/;\d+;/)).length}`);
+      console.log(`- EXTERNOS: ${participantes.filter(p => p.includes("EXTERNO")).length}`);
+      console.log(`- SEM EMAIL: ${participantes.filter(p => p.includes("SEM_EMAIL")).length}`);
+
+      // Se não encontrou data, usa o nome do arquivo como referência
+      if (!dataRegistrada) {
+        // Tenta extrair data do nome do arquivo
+        const matchData = nomeArquivo.match(/(\d{1,2})[_\s](\d{1,2})/);
+        if (matchData) {
+          data.dia = `${matchData[1]}/${matchData[2]}/24`; // Assume ano 2024
+          console.log(`Data extraída do nome do arquivo: ${data.dia}`);
+        } else {
+          data.dia = "SEM_DATA";
+        }
+      }
 
       // Armazena os participantes e o nome do arquivo no objeto "data"
       data.participantes = participantes;
@@ -226,9 +295,11 @@ async function processar() {
       if (i < ultimo) {
         processar();
       } else {
-        // Último arquivo processado: salva os dados da turma e inicia a montagem do Excel
+        // Último arquivo processado
         turma.nome = nomeTurma;
         chamadas.push(turma);
+        console.log("\n=== Processamento concluído ===");
+        console.log(`Total de turmas: ${chamadas.length}`);
         montarExcel();
       }
     }
@@ -240,7 +311,7 @@ async function processar() {
  */
 async function buscarArquivos() {
   leitor.question(
-    "Qual planilha deseja?\n 0 - 01_DEV\n 1 - 02_DEV\n 2 - 03_GCCF\n 3 - 04_GenAI\n 5 - 06_AZ900\n 6 - 07_GenAI\n\nDigite: ",
+    "Qual planilha deseja?\n 0 - QualificaSP - Oferta 1\n 1 - QualificaSP - Oferta 2\n 2 - QualificaSP - Oferta 3\n\nDigite: ",
     async function (answer) {
       indice = answer;
       console.log(`\nVocê escolheu: ${indice}`);
@@ -258,7 +329,7 @@ async function buscarArquivos() {
 // ─────────────────────────────────────────────────────────────
 // FUNÇÕES DE GERAÇÃO E EXPORTAÇÃO DO ARQUIVO EXCEL
 // ─────────────────────────────────────────────────────────────
-
+// Turma A no TEAMS
 /**
  * Calcula a porcentagem de presença para cada registro.
  * Adiciona a frequência (porcentagem) ao final de cada linha.
@@ -278,7 +349,7 @@ function calcularPorcentagemPresenca(dados) {
       partes.pop();
     }
     // Conta as presenças ("X") nas colunas referentes às aulas
-    const totalPresencas = partes.slice(3).filter((item) => item === "X").length;
+    const totalPresencas = partes.slice(3).filter((item) => item === "x").length;
     const porcentagem = (totalPresencas / totalDatas).toFixed(2).replace(".", ",");
     // Retorna a linha atualizada com a porcentagem (FREQ) no final
     return partes.concat(porcentagem).join(";");
@@ -357,7 +428,7 @@ async function montarExcel() {
             const itemParts = item.split(";");
             return itemParts[1] === rm;
           });
-          return linha + (presente ? ";X" : ";-");
+          return linha + (presente ? ";x" : ";-");
         }
       });
     });

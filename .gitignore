@@ -129,3 +129,5 @@ dist
 # Exports
 .xlsx
 *.xlsx
+
+saida.json
